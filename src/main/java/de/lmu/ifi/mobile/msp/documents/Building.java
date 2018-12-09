@@ -1,5 +1,6 @@
 package de.lmu.ifi.mobile.msp.documents;
 
+import de.lmu.ifi.mobile.msp.dto.RoomFinderBuilding;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -54,5 +55,15 @@ public class Building {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public static Building fromRoomFinderBuilding(RoomFinderBuilding roomFinderBuilding) {
+        Building building = new Building();
+        building.setCity(roomFinderBuilding.getCity());
+        building.setId(roomFinderBuilding.getCode());
+        building.setLat(Double.parseDouble(roomFinderBuilding.getLat()));
+        building.setLng(Double.parseDouble(roomFinderBuilding.getLng()));
+        building.setName(roomFinderBuilding.getDisplayName());
+        return building;
     }
 }

@@ -1,8 +1,8 @@
 package de.lmu.ifi.mobile.msp;
-
+/*
 import com.jaunt.JauntException;
 import com.jaunt.UserAgent;
-
+*/
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RestTest {
 
+    /*
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String getAllMessages() {
         try{
@@ -22,6 +23,7 @@ public class RestTest {
           }
         return "didn't work";
     }
+    */
 
     // @RequestMapping(value = "/sendMessage", method = RequestMethod.POST, consumes = "application/json")
     // public ResponseEntity<HttpStatus> receiveMessage(@RequestBody Message message) {
