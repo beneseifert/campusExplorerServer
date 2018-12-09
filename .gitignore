@@ -125,4 +125,6 @@ gradle-app.setting
 ### Gradle Patch ###
 **/build/
 
+src/main/.DS_Store
+
 # End of https://www.gitignore.io/api/java,gradle,intellij
