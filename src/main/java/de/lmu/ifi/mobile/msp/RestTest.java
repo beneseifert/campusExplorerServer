@@ -58,6 +58,42 @@ public class RestTest {
         return "nope";
     }
 
+    @RequestMapping(value = "/3", method = RequestMethod.GET)
+    public String getSpecificEvent() {
+        try {
+        UserAgent userAgent = new UserAgent();
+        userAgent.visit("https://lsf.verwaltung.uni-muenchen.de/qisserver/rds?state=wtree&search=1&category=veranstaltung.browse&navigationPosition=functions%2Clectureindex&breadcrumb=lectureindex&topitem=locallinks&subitem=lectureindex");
+        
+        String firstLink = userAgent.doc.findFirst("<a>Statistik").getAt("href").replace("&amp;", "&");
+
+        userAgent.visit(firstLink);
+
+        // https://lsf.verwaltung.uni-muenchen.de/qisserver/rds;jsessionid=1B716CE0D8F720E3718985A2C5327271.lsf4?state=wtree&search=1&trex=step&root120182=1%7C357439&P.vx=kurz
+
+        // String result = "";
+
+        String secondLink = userAgent.doc.findFirst("<a>2. Informatik").getAt("href").replace("&amp;", "&");
+        
+        userAgent.visit(secondLink);
+        
+        String thirdLink = userAgent.doc.findFirst("<a>Lehrveranstaltungen im Bachelor").getAt("href").replace("&amp;", "&");
+        
+        userAgent.visit(thirdLink);
+        
+        String fourthLink = userAgent.doc.findFirst("<a>Digitale Medien").getAt("href").replace("&amp;", "&");
+        
+        userAgent.visit(fourthLink);
+        
+        String title = userAgent.doc.findFirst("<title>").innerHTML();
+        
+        // return "hm " + title;
+        return "1: " + firstLink + "<br> 2: " + secondLink +"<br> 3: " +  thirdLink + "<br> 4: " + fourthLink + "<br> 5: " + title;
+        } catch (Exception e) {
+            return e.toString();
+            // System.out.println(e.toString());
+        }
+        // return "nope";
+    }
 
 
 
