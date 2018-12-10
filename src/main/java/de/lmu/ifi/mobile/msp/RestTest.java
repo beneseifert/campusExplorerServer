@@ -1,6 +1,14 @@
 package de.lmu.ifi.mobile.msp;
 
-import com.jaunt.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.jaunt.Element;
+import com.jaunt.Elements;
+import com.jaunt.JauntException;
+import com.jaunt.NotFound;
+import com.jaunt.ResponseException;
+import com.jaunt.UserAgent;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -63,8 +71,20 @@ public class RestTest {
         try {
         UserAgent userAgent = new UserAgent();
         userAgent.visit("https://lsf.verwaltung.uni-muenchen.de/qisserver/rds?state=wtree&search=1&category=veranstaltung.browse&navigationPosition=functions%2Clectureindex&breadcrumb=lectureindex&topitem=locallinks&subitem=lectureindex");
-        
-        String firstLink = userAgent.doc.findFirst("<a>Statistik").getAt("href").replace("&amp;", "&");
+
+        Elements firstLevel = userAgent.doc.findEach("<a class=ueb>");
+        List<MetaLink> links = firstLevel.toList().stream().map(el -> {
+                try {
+                    return new MetaLink(false, el.getAt("href"));
+                } catch (NotFound e) {
+                    e.printStackTrace();
+                    return null;
+                }
+        }).collect(Collectors.toList());
+        links.get(0).setLinkVisited();
+        return String.join("<br>", links.stream().map(el -> el.getLink()).collect(Collectors.toList()));
+
+        /* String firstLink = userAgent.doc.findFirst("<a>Statistik").getAt("href").replace("&amp;", "&");
 
         userAgent.visit(firstLink);
 
@@ -80,19 +100,41 @@ public class RestTest {
         
         userAgent.visit(thirdLink);
         
-        String fourthLink = userAgent.doc.findFirst("<a>Digitale Medien").getAt("href").replace("&amp;", "&");
+        // String fourthLink = userAgent.doc.findFirst("<a>Digitale Medien").getAt("href").replace("&amp;", "&");
+
+        Elements veranstaltungen = userAgent.doc.findFirst("<table summary>").findEach("<a class=regular>");
+        List<String> titles = getTitleForElements(veranstaltungen, userAgent);
         
-        userAgent.visit(fourthLink);
         
-        String title = userAgent.doc.findFirst("<title>").innerHTML();
+        // userAgent.visit(fourthLink);
+        
+        // String title = userAgent.doc.findFirst("<title>").innerHTML();
         
         // return "hm " + title;
-        return "1: " + firstLink + "<br> 2: " + secondLink +"<br> 3: " +  thirdLink + "<br> 4: " + fourthLink + "<br> 5: " + title;
+        // return "1: " + firstLink + "<br> 2: " + secondLink +"<br> 3: " +  thirdLink + "<br> 4: " + fourthLink + "<br> 5: " + title;
+        return String.join("<br>", titles); */
         } catch (Exception e) {
             return e.toString();
             // System.out.println(e.toString());
         }
         // return "nope";
+    }
+
+    private List<String> getTitleForElements(Elements veranstaltungen, UserAgent userAgent) {
+        return veranstaltungen.toList().stream().map(el -> {
+            try {
+                String link = el.getAt("href").replace("&amp;", "&");
+                userAgent.visit(link);
+                System.out.println("visiting link " + (veranstaltungen.toList().indexOf(el)+1) + " of " + veranstaltungen.size() + ": " + link);
+                return userAgent.doc.findFirst("<title>").innerHTML();
+            } catch (NotFound e) {
+                e.printStackTrace();
+                return null;
+            } catch (ResponseException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }).collect(Collectors.toList());
     }
 
 
