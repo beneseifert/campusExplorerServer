@@ -1,7 +1,10 @@
 package de.lmu.ifi.mobile.msp.documents;
 
+import de.lmu.ifi.mobile.msp.dto.RoomFinderFloor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Map;
 
 @Document(collection = "floor")
 public class Floor {
@@ -71,5 +74,25 @@ public class Floor {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public static Floor fromArbitraryMap(Map<String, String> mapFloor, String id) {
+        if (mapFloor.containsKey("bCode")
+                && mapFloor.containsKey("mapUri")
+                && mapFloor.containsKey("level")
+                && mapFloor.containsKey("mapSizeX")
+                && mapFloor.containsKey("mapSizeY")
+                && mapFloor.containsKey("address")) {
+            Floor floor = new Floor();
+            floor.setId(id);
+            floor.setBuilding(mapFloor.get("bCode"));
+            floor.setMapFileName(mapFloor.get("mapUri"));
+            floor.setLevel(mapFloor.get("level"));
+            floor.setMapWidth(Integer.parseInt(mapFloor.get("mapSizeX")));
+            floor.setMapHeight(Integer.parseInt(mapFloor.get("mapSizeY")));
+            floor.setAddress(mapFloor.get("address"));
+            return floor;
+        }
+        return null;
     }
 }
