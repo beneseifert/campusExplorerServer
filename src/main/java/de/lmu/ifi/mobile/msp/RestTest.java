@@ -1,7 +1,5 @@
 package de.lmu.ifi.mobile.msp;
-
 import com.jaunt.*;
-
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +18,7 @@ public class RestTest {
         }
         return "didn't work";
     }
+
 
     @RequestMapping(value = "/1", method = RequestMethod.GET)
     public String getCancellations() {
@@ -42,7 +41,7 @@ public class RestTest {
         return "nope";
     }
 
-
+    
     @RequestMapping(value = "/2", method = RequestMethod.GET)
     public String getLectureDirectory() {
         try {
@@ -58,14 +57,4 @@ public class RestTest {
         return "nope";
     }
 
-
-
-
-    // @RequestMapping(value = "/sendMessage", method = RequestMethod.POST, consumes
-    // = "application/json")
-    // public ResponseEntity<HttpStatus> receiveMessage(@RequestBody Message
-    // message) {
-    // MessageModel.addMessage(message);
-    // return ResponseEntity.ok(HttpStatus.OK);
-    // }
 }
