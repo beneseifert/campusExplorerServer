@@ -3,6 +3,7 @@ package de.lmu.ifi.mobile.msp.services;
 import com.google.gson.Gson;
 import de.lmu.ifi.mobile.msp.documents.Building;
 import de.lmu.ifi.mobile.msp.documents.Floor;
+import de.lmu.ifi.mobile.msp.documents.Room;
 import de.lmu.ifi.mobile.msp.dto.RoomFinderBuilding;
 import de.lmu.ifi.mobile.msp.dto.RoomFinderBuildings;
 import de.lmu.ifi.mobile.msp.dto.RoomFinderFloor;
@@ -40,6 +41,9 @@ public class RoomFinderService {
     @Value("classpath*:roomfinder-import/unique-building-parts/*.json")
     private Resource[] floorFiles;
 
+    @Value("classpath*:roomfinder-import/rooms/*.json")
+    private Resource[] roomFiles;
+
     private Gson gson = new Gson();
 
     public RoomFinderService() {}
@@ -51,8 +55,9 @@ public class RoomFinderService {
         logger.info("loaded building data");
         loadFloorData();
         logger.info("loaded floor data");
-
-        logger.info("completed buildings import");
+        loadRoomData();
+        logger.info("loaded room data");
+        logger.info("completed import");
     }
 
     private void clearOldData() {
@@ -72,7 +77,7 @@ public class RoomFinderService {
                 buildingRepository.save(building);
             }
         } catch(IOException e) {
-            logger.info("Problem while reading building data");
+            logger.info("problem while reading building data");
         }
     }
 
@@ -90,13 +95,32 @@ public class RoomFinderService {
                     }
                 }
             } catch (IOException e) {
-                logger.info("Problem while reading unique building part file");
+                logger.info("problem while reading unique building part file");
             } catch (ClassCastException e) {
-                logger.info("Building file is not of type Map<String, RoomFinderFloor>");
+                logger.info("building part file is not of type Map<String, RoomFinderFloor>");
             }
         }
     }
 
-
+    private void loadRoomData() {
+        for (Resource roomFile : roomFiles) {
+            try {
+                String roomFileData = InputStreamUtil.inputStreamToString(roomFile.getInputStream());
+                Map<String, Map<String, String>> roomData = gson.fromJson(roomFileData, Map.class);
+                for (Map.Entry<String, Map<String, String>> entry : roomData.entrySet()) {
+                    Room room = Room.fromArbitraryMap(entry.getValue(), entry.getKey());
+                    if (room != null) {
+                        roomRepository.save(room);
+                    } else {
+                        logger.info("skipped room because fields where not set");
+                    }
+                }
+            } catch (IOException e) {
+                logger.info("problem while reading room file");
+            } catch (ClassCastException e) {
+                logger.info("room file is not of type Map<String, RoomFinderRoom>");
+            }
+        }
+    }
 
 }
