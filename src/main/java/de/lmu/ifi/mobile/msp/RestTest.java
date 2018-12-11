@@ -1,5 +1,6 @@
 package de.lmu.ifi.mobile.msp;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +10,7 @@ import com.jaunt.JauntException;
 import com.jaunt.NotFound;
 import com.jaunt.ResponseException;
 import com.jaunt.UserAgent;
+import com.jaunt.component.Table;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -86,9 +88,9 @@ public class RestTest {
             }).collect(Collectors.toList());
             links.get(0).setLinkVisited();
 
-            goOverLinksNonRecursive(userAgent, links);
+            List<MetaLink> lastLevelLinks = goOverLinksNonRecursive(userAgent, links);
 
-            return String.join("<br>", links.stream().map(el -> el.getLink()).collect(Collectors.toList()));
+            return String.join("<br>", lastLevelLinks.stream().map(el -> el.getLink()).collect(Collectors.toList()));
 
             /*
              * String firstLink =
@@ -154,6 +156,28 @@ public class RestTest {
         }).collect(Collectors.toList());
     }
 
+    private List<MetaLink> getLectureLinksOfPage(UserAgent userAgent) {
+        List<MetaLink> allLectureLinks = new ArrayList<MetaLink>();
+        try {
+            Element tableElement;
+            tableElement = userAgent.doc.findFirst("<table summary>");
+            // System.out.println("found!");
+            Table table = new Table(tableElement);
+            Elements allLectureElements = table.getColBelow("Veranstaltung");
+            return allLectureElements.toList().stream().map(el -> {
+                try {
+                    return new MetaLink(false, el.getFirst("<a class=regular>").getAt("href").replace("&amp;", "&"));
+                } catch (NotFound e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }).collect(Collectors.toList());
+        } catch (NotFound e1) {
+            // e1.printStackTrace();
+            return allLectureLinks;
+        }
+    }
+
     private List<MetaLink> goOverLinks(UserAgent userAgent, List<MetaLink> links, int i) {
         if (i < links.size()) {
             MetaLink link = links.get(i);
@@ -165,8 +189,8 @@ public class RestTest {
                     // set the link as visited so we don't visit it again
                     link.setLinkVisited();
                     // check if we're on a lecture page
-                    if (userAgent.doc.findFirst("<title>").getTextContent().contains("Vorlesungsverzeichnis")){
-                    // get the links of the given page
+                    if (userAgent.doc.findFirst("<title>").getTextContent().contains("Vorlesungsverzeichnis")) {
+                        // get the links of the given page
                         List<MetaLink> linksOfLink = getLinksOfPage(userAgent);
                         System.out.println("before merge: " + links.size() + " new links: " + linksOfLink.size());
                         // add the new links to the existing links (if they are new)
@@ -188,24 +212,31 @@ public class RestTest {
     }
 
     private List<MetaLink> goOverLinksNonRecursive(UserAgent userAgent, List<MetaLink> links) {
+        List<MetaLink> lastLevelLinks = new ArrayList<MetaLink>();
         for (int i = 0; i < links.size(); i++) {
             MetaLink link = links.get(i);
             if (!link.wasLinkVisited()) {
-                System.out.println("now visiting link " + i + " of " + links.size());
+                System.out.println("now visiting link " + i + " of " + links.size() + " | " + String.format("%.0f%%",(100 * (float)i) / (float) links.size()));
                 try {
                     // visit the current link
                     userAgent.visit(link.getLink());
                     // set the link as visited so we don't visit it again
                     link.setLinkVisited();
                     // check if we're on a lecture page
-                    if (userAgent.doc.findFirst("<title>").getTextContent().contains("Vorlesungsverzeichnis")){
-                    // get the links of the given page
+                    if (userAgent.doc.findFirst("<title>").getTextContent().contains("Vorlesungsverzeichnis")) {
+                        // get the links of the given page
                         List<MetaLink> linksOfLink = getLinksOfPage(userAgent);
-                        System.out.println("before merge: " + links.size() + " new links: " + linksOfLink.size());
+                        // System.out.println("before merge: " + links.size() + " new links: " +
+                        // linksOfLink.size());
+                        List<MetaLink> lectureLinks = getLectureLinksOfPage(userAgent);
+                        lastLevelLinks = mergeLists(lastLevelLinks, lectureLinks);
+                        System.out.println("lastLevelLinks: " + lastLevelLinks.size());
                         // add the new links to the existing links (if they are new)
                         links = mergeLists(links, linksOfLink);
-                        System.out.println("after merge: " + links.size());
+                        // System.out.println("after merge: " + links.size());
                         // now go over the new list
+                    } else {
+                        System.out.println("adding to last level links");
                     }
                 } catch (ResponseException e) {
                     e.printStackTrace();
@@ -214,18 +245,22 @@ public class RestTest {
                 }
             }
         }
-        return links;
+        return lastLevelLinks;
     }
 
     private List<MetaLink> mergeLists(List<MetaLink> links, List<MetaLink> linksOfLink) {
         linksOfLink.forEach(link -> {
             if (!hasLink(links, link)) {
-                System.out.println("size before: " + links.size());
                 links.add(link);
-                System.out.println("adding link");
-                System.out.println("size after: " + links.size());
             }
         });
+        return links;
+    }
+
+    private List<MetaLink> addToList(List<MetaLink> links, MetaLink link) {
+        if (!hasLink(links, link)) {
+            links.add(link);
+        }
         return links;
     }
 
