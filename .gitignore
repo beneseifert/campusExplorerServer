@@ -13,6 +13,9 @@
 .idea/**/dictionaries
 .idea/**/shelf
 
+# jaunt
+/jaunt_cache
+
 # Generated files
 .idea/**/contentModel.xml
 
