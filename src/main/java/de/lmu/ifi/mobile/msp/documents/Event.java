@@ -6,8 +6,17 @@ public class Event {
     private String room;
     private String time;
     private String date;
+    private String cycle;
 
-    public Event() {}
+    public Event() {
+    }
+
+    public Event(String room, String time, String date, String cycle) {
+        this.room = room;
+        this.time = time;
+        this.date = date;
+        this.cycle = cycle;
+    }
 
     /**
      * @return the room
@@ -49,6 +58,20 @@ public class Event {
      */
     public void setDate(String date) {
         this.date = date;
+    }
+
+    /**
+     * @return the cycle
+     */
+    public String getCycle() {
+        return cycle;
+    }
+
+    /**
+     * @param cycle the cycle to set
+     */
+    public void setCycle(String cycle) {
+        this.cycle = cycle;
     }
 
 }
