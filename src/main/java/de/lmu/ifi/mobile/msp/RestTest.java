@@ -102,7 +102,7 @@ public class RestTest {
             Table grundDaten = new Table(grundDatenElement);
             String type = grundDaten.getRow("Veranstaltungsart").findFirst("<td>").getTextContent();
             String id = grundDaten.getRow("Veranstaltungsnummer").findFirst("<td>").getTextContent();
-            String name = userAgent.doc.findFirst("<h1>").getTextContent().replaceAll("[\n\t]*", "");
+            String name = userAgent.doc.findFirst("<h1>").getTextContent().replaceAll("[\n\t]*", "").trim();
             Element departmentElement = userAgent.doc.findFirst("<caption>Zuordnung zu Einrichtungen").getParent();
             String department = departmentElement.findFirst("<a class='regular'>").getTextContent()
                     .replaceAll("[\n\t]*", "");
@@ -110,7 +110,7 @@ public class RestTest {
             lecture = new Lecture(id, name, new ArrayList<Event>(), department, type, link.getLink());
 
             // für dich bene zum löschen gibts auch ne REST resource
-            // lectureRepository.save(lecture);
+            lectureRepository.save(lecture);
 
         } catch (NotFound e) {
             e.printStackTrace();
