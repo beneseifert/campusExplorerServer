@@ -97,7 +97,7 @@ public class RestTest {
         List<MetaLink> allLectureLinks = new ArrayList<MetaLink>();
         // this runs until we have viewed all overview websites
         for (int i = 0; i < allOverviewWebsites.size(); i++) {
-            MetaLink link = allOverviewWebsites.get(i);
+            MetaLink link = allOverviewWebsites.get(i); 
             // check if the link was visited already
             if (!link.wasLinkVisited()) {
                 System.out.println("now visiting link " + i + " of " + allOverviewWebsites.size() + " | "
