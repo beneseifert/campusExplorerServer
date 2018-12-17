@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
 import com.jaunt.Element;
 import com.jaunt.Elements;
 import com.jaunt.NotFound;
@@ -14,6 +15,9 @@ import com.jaunt.component.Table;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import de.lmu.ifi.mobile.msp.documents.Event;
+import de.lmu.ifi.mobile.msp.documents.Lecture;
 
 @RestController
 public class RestTest {
@@ -35,11 +39,60 @@ public class RestTest {
             links.get(0).setLinkVisited();
             // now from here on, go to all child links and retrieve the last-level links
             List<MetaLink> lastLevelLinks = goOverLinks(userAgent, links);
+
+            List<Lecture> lectures = getLectures(lastLevelLinks, userAgent);
+            // Lecture firstLecture = lectures.get(0);
+            Gson gson = new Gson();
+            return gson.toJson(lectures);
             // return the last-level links as an html page
-            return String.join("<br>", lastLevelLinks.stream().map(el -> el.getLink()).collect(Collectors.toList()));
+            // return String.join("<br>", lastLevelLinks.stream().map(el ->
+            // el.getLink()).collect(Collectors.toList()));
         } catch (Exception e) {
             return e.toString();
         }
+    }
+
+    private List<Lecture> getLectures(List<MetaLink> lastLevelLinks, UserAgent userAgent) {
+        List<Lecture> lectures = new ArrayList<Lecture>();
+        for (MetaLink link : lastLevelLinks) {
+            System.out.println("looking at link: " + (lastLevelLinks.indexOf(link)+1) + " of " + lastLevelLinks.size());
+            // check if the link was visited already
+            if (!link.wasLinkVisited()) {
+                try {
+                    // visit the current link
+                    userAgent.visit(link.getLink());
+                    // set the link as visited so we don't visit it again
+                    link.setLinkVisited();
+                    // get the lecture of the given page
+                    Lecture lecture = getLectureOfPage(userAgent, link);
+                    lectures.add(lecture);
+                } catch (ResponseException e) {
+                    e.printStackTrace();
+                }
+            }
+            // break;
+        }
+        return lectures;
+    }
+
+    private Lecture getLectureOfPage(UserAgent userAgent, MetaLink link) {
+        Lecture lecture = new Lecture();
+        try {
+            Element grundDatenElement = userAgent.doc.findFirst("<table summary='Grunddaten zur Veranstaltung'>");
+            Table grundDaten = new Table(grundDatenElement);
+            String type = grundDaten.getRow("Veranstaltungsart").findFirst("<td>").getTextContent();
+            String id = grundDaten.getRow("Veranstaltungsnummer").findFirst("<td>").getTextContent();
+            String name = userAgent.doc.findFirst("<h1>").getTextContent().replaceAll("[\n\t]*", "");
+            Element departmentElement = userAgent.doc.findFirst("<caption>Zuordnung zu Einrichtungen").getParent();
+            String department = departmentElement.findFirst("<a class='regular'>").getTextContent().replaceAll("[\n\t]*", "");
+
+            lecture = new Lecture(id, name, new ArrayList<Event>(), department, link.getLink());
+        } catch (NotFound e) {
+            e.printStackTrace();
+        }
+        // String room = userAgent.doc.findFirst(query);
+        // String type = userAgent.doc.findFirst
+        return lecture;
     }
 
     /**
@@ -96,8 +149,9 @@ public class RestTest {
     private List<MetaLink> goOverLinks(UserAgent userAgent, List<MetaLink> allOverviewWebsites) {
         List<MetaLink> allLectureLinks = new ArrayList<MetaLink>();
         // this runs until we have viewed all overview websites
-        for (int i = 0; i < allOverviewWebsites.size(); i++) {
-            MetaLink link = allOverviewWebsites.get(i); 
+        // for (int i = 0; i < allOverviewWebsites.size(); i++) {
+        for (int i = 0; i < 100; i++) {
+            MetaLink link = allOverviewWebsites.get(i);
             // check if the link was visited already
             if (!link.wasLinkVisited()) {
                 System.out.println("now visiting link " + i + " of " + allOverviewWebsites.size() + " | "
