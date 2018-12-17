@@ -1,12 +1,9 @@
 package de.lmu.ifi.mobile.msp.documents;
 
-import de.lmu.ifi.mobile.msp.dto.RoomFinderBuilding;
-
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 
 @Document(collection = "lecture")
 public class Lecture {
@@ -16,14 +13,18 @@ public class Lecture {
     private String name;
     private List<Event> events;
     private String department;
+    private String type;
     private String link;
 
-    public Lecture() {}
-    public Lecture(String id, String name, List<Event> events, String department, String link) {
+    public Lecture() {
+    }
+
+    public Lecture(String id, String name, List<Event> events, String department, String type, String link) {
         this.id = id;
         this.name = name;
         this.events = events;
         this.department = department;
+        this.type = type;
         this.link = link;
     }
 
@@ -69,6 +70,20 @@ public class Lecture {
      */
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    /**
+     * @return the type
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(String type) {
+        this.type = type;
     }
 
     /**

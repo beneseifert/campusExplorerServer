@@ -23,7 +23,7 @@ import de.lmu.ifi.mobile.msp.documents.Lecture;
 public class RestTest {
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String getSpecificEvent() {
+    public String getLectureData() {
         try {
             // get a userAgent to play browser
             UserAgent userAgent = new UserAgent();
@@ -52,10 +52,18 @@ public class RestTest {
         }
     }
 
+    /**
+     * Returns the lectures of all given lastLevelLinks
+     * 
+     * @param lastLevelLinks
+     * @param userAgent
+     * @return
+     */
     private List<Lecture> getLectures(List<MetaLink> lastLevelLinks, UserAgent userAgent) {
         List<Lecture> lectures = new ArrayList<Lecture>();
         for (MetaLink link : lastLevelLinks) {
-            System.out.println("looking at link: " + (lastLevelLinks.indexOf(link)+1) + " of " + lastLevelLinks.size());
+            System.out
+                    .println("looking at link: " + (lastLevelLinks.indexOf(link) + 1) + " of " + lastLevelLinks.size());
             // check if the link was visited already
             if (!link.wasLinkVisited()) {
                 try {
@@ -70,11 +78,17 @@ public class RestTest {
                     e.printStackTrace();
                 }
             }
-            // break;
         }
         return lectures;
     }
 
+    /**
+     * Returns the {@link Lecture} of the current page.
+     * 
+     * @param userAgent
+     * @param link
+     * @return
+     */
     private Lecture getLectureOfPage(UserAgent userAgent, MetaLink link) {
         Lecture lecture = new Lecture();
         try {
@@ -84,14 +98,13 @@ public class RestTest {
             String id = grundDaten.getRow("Veranstaltungsnummer").findFirst("<td>").getTextContent();
             String name = userAgent.doc.findFirst("<h1>").getTextContent().replaceAll("[\n\t]*", "");
             Element departmentElement = userAgent.doc.findFirst("<caption>Zuordnung zu Einrichtungen").getParent();
-            String department = departmentElement.findFirst("<a class='regular'>").getTextContent().replaceAll("[\n\t]*", "");
+            String department = departmentElement.findFirst("<a class='regular'>").getTextContent()
+                    .replaceAll("[\n\t]*", "");
 
-            lecture = new Lecture(id, name, new ArrayList<Event>(), department, link.getLink());
+            lecture = new Lecture(id, name, new ArrayList<Event>(), department, type, link.getLink());
         } catch (NotFound e) {
             e.printStackTrace();
         }
-        // String room = userAgent.doc.findFirst(query);
-        // String type = userAgent.doc.findFirst
         return lecture;
     }
 
