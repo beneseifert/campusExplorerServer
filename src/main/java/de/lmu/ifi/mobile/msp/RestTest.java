@@ -21,7 +21,6 @@ import de.lmu.ifi.mobile.msp.documents.Event;
 import de.lmu.ifi.mobile.msp.documents.Lecture;
 import de.lmu.ifi.mobile.msp.repositories.LectureRepository;
 
-
 @RestController
 public class RestTest {
 
@@ -58,10 +57,18 @@ public class RestTest {
         }
     }
 
+    /**
+     * Returns the lectures of all given lastLevelLinks
+     * 
+     * @param lastLevelLinks
+     * @param userAgent
+     * @return
+     */
     private List<Lecture> getLectures(List<MetaLink> lastLevelLinks, UserAgent userAgent) {
         List<Lecture> lectures = new ArrayList<Lecture>();
         for (MetaLink link : lastLevelLinks) {
-            System.out.println("looking at link: " + (lastLevelLinks.indexOf(link)+1) + " of " + lastLevelLinks.size());
+            System.out
+                    .println("looking at link: " + (lastLevelLinks.indexOf(link) + 1) + " of " + lastLevelLinks.size());
             // check if the link was visited already
             if (!link.wasLinkVisited()) {
                 try {
@@ -81,6 +88,13 @@ public class RestTest {
         return lectures;
     }
 
+    /**
+     * Returns the {@link Lecture} of the current page.
+     * 
+     * @param userAgent
+     * @param link
+     * @return
+     */
     private Lecture getLectureOfPage(UserAgent userAgent, MetaLink link) {
         Lecture lecture = new Lecture();
         try {
@@ -90,12 +104,13 @@ public class RestTest {
             String id = grundDaten.getRow("Veranstaltungsnummer").findFirst("<td>").getTextContent();
             String name = userAgent.doc.findFirst("<h1>").getTextContent().replaceAll("[\n\t]*", "");
             Element departmentElement = userAgent.doc.findFirst("<caption>Zuordnung zu Einrichtungen").getParent();
-            String department = departmentElement.findFirst("<a class='regular'>").getTextContent().replaceAll("[\n\t]*", "");
+            String department = departmentElement.findFirst("<a class='regular'>").getTextContent()
+                    .replaceAll("[\n\t]*", "");
 
             lecture = new Lecture(id, name, new ArrayList<Event>(), department, type, link.getLink());
 
-            //für dich bene zum löschen gibts auch ne REST resource
-            //lectureRepository.save(lecture);
+            // für dich bene zum löschen gibts auch ne REST resource
+            // lectureRepository.save(lecture);
 
         } catch (NotFound e) {
             e.printStackTrace();
@@ -229,7 +244,7 @@ public class RestTest {
     // }
 
     @RequestMapping(value = "/deleteLectureCollection", method = RequestMethod.GET)
-    private void deleteLectures(){
+    private void deleteLectures() {
         lectureRepository.deleteAll();
     }
 }

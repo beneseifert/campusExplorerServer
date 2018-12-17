@@ -129,5 +129,7 @@ gradle-app.setting
 **/build/
 
 src/main/.DS_Store
+bin/main/.DS_Store
+bin/main/roomfinder-import/
 
 # End of https://www.gitignore.io/api/java,gradle,intellij
