@@ -27,8 +27,13 @@ public class RestTest {
     @Autowired
     LectureRepository lectureRepository;
 
+    /**
+     * Returns all the lectures as a json string
+     * 
+     * @return
+     */
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String getSpecificEvent() {
+    public String getAllLectures() {
         try {
             // get a userAgent to play browser
             UserAgent userAgent = new UserAgent();
@@ -44,14 +49,11 @@ public class RestTest {
             links.get(0).setLinkVisited();
             // now from here on, go to all child links and retrieve the last-level links
             List<MetaLink> lastLevelLinks = goOverLinks(userAgent, links);
-
+            // get all the Lecture objects from their links
             List<Lecture> lectures = getLectures(lastLevelLinks, userAgent);
-            // Lecture firstLecture = lectures.get(0);
+            // return the lectures object as a JSON (for debugging purposes)
             Gson gson = new Gson();
             return gson.toJson(lectures);
-            // return the last-level links as an html page
-            // return String.join("<br>", lastLevelLinks.stream().map(el ->
-            // el.getLink()).collect(Collectors.toList()));
         } catch (Exception e) {
             return e.toString();
         }
@@ -98,16 +100,55 @@ public class RestTest {
     private Lecture getLectureOfPage(UserAgent userAgent, MetaLink link) {
         Lecture lecture = new Lecture();
         try {
-            Element grundDatenElement = userAgent.doc.findFirst("<table summary='Grunddaten zur Veranstaltung'>");
-            Table grundDaten = new Table(grundDatenElement);
+            // get the Table for the "Grunddaten"
+            Table grundDaten = new Table(userAgent.doc.findFirst("<table summary='Grunddaten zur Veranstaltung'>"));
             String type = grundDaten.getRow("Veranstaltungsart").findFirst("<td>").getTextContent();
             String id = grundDaten.getRow("Veranstaltungsnummer").findFirst("<td>").getTextContent();
-            String name = userAgent.doc.findFirst("<h1>").getTextContent().replaceAll("[\n\t]*", "").trim();
+            String name = userAgent.doc.findFirst("<h1>").getTextContent().replaceAll("[\n\t]*", "")
+                    .replace("- Einzelansicht", "").trim();
+            // get the department via the department element which we find through it's
+            // caption
             Element departmentElement = userAgent.doc.findFirst("<caption>Zuordnung zu Einrichtungen").getParent();
             String department = departmentElement.findFirst("<a class='regular'>").getTextContent()
                     .replaceAll("[\n\t]*", "");
+            // now get the event tables via one of the table headers
+            List<Table> allEventTables = userAgent.doc.findEvery("<th scope='col' class='mod'>Tag").toList().stream()
+                    .map(element -> {
+                        try {
+                            return new Table(element.getParent().getParent());
+                        } catch (NotFound e1) {
+                            e1.printStackTrace();
+                            return null;
+                        }
+                    }).collect(Collectors.toList());
 
-            lecture = new Lecture(id, name, new ArrayList<Event>(), department, type, link.getLink());
+            // check if we have any events
+            if (allEventTables.size() > 0) {
+                ArrayList<Event> allEvents = new ArrayList<Event>();
+
+                // go over all group tables
+                for (Table currentEventTable : allEventTables) {
+                    // check if we have any events in this group (might be empty)
+                    if (currentEventTable.getCol(0).size() > 1) {
+                        // now go over all events in this currentEventTable
+                        for (int currentIndex = 0; currentIndex < currentEventTable.getCol(0).size()
+                                - 1; currentIndex++) {
+                            allEvents
+                                    .add(new Event(getFormattedPropertyOfTable(currentEventTable, "Raum", currentIndex),
+                                            getFormattedPropertyOfTable(currentEventTable, "Zeit", currentIndex),
+                                            getFormattedPropertyOfTable(currentEventTable, "Dauer", currentIndex),
+                                            getFormattedPropertyOfTable(currentEventTable, "Tag", currentIndex),
+                                            getFormattedPropertyOfTable(currentEventTable, "Rhythmus", currentIndex)));
+
+                        }
+                    }
+                }
+                // add the information as an object
+                lecture = new Lecture(id, name, allEvents, department, type, link.getLink());
+            } else {
+                // if we don't have any event data, just put in an empty list of Events
+                lecture = new Lecture(id, name, new ArrayList<Event>(), department, type, link.getLink());
+            }
 
             // für dich bene zum löschen gibts auch ne REST resource
             lectureRepository.save(lecture);
@@ -115,9 +156,26 @@ public class RestTest {
         } catch (NotFound e) {
             e.printStackTrace();
         }
-        // String room = userAgent.doc.findFirst(query);
-        // String type = userAgent.doc.findFirst
         return lecture;
+    }
+
+    /**
+     * Returns the formatted string (without unnecessary whitespaces etc.) of the
+     * given propertyName in the given currentEventTable at the currentIndex
+     * 
+     * @param currentEventTable
+     * @param propertyName
+     * @param currentIndex
+     * @return
+     */
+    private String getFormattedPropertyOfTable(Table currentEventTable, String propertyName, int currentIndex) {
+        try {
+            return currentEventTable.getColBelow(propertyName).toList().get(currentIndex).getTextContent()
+                    .replaceAll("[\n\t]*", "").replaceAll("&nbsp;", " ").trim();
+        } catch (NotFound e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**

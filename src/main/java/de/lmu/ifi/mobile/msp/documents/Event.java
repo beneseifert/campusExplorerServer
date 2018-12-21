@@ -6,15 +6,25 @@ public class Event {
     private String room;
     private String time;
     private String date;
+    private String dayOfWeek;
     private String cycle;
 
     public Event() {
     }
 
-    public Event(String room, String time, String date, String cycle) {
+    /**
+     * 
+     * @param room
+     * @param time
+     * @param date
+     * @param cycle
+     * @param dayOfWeek
+     */
+    public Event(String room, String time, String date, String cycle, String dayOfWeek) {
         this.room = room;
         this.time = time;
         this.date = date;
+        this.dayOfWeek = dayOfWeek;
         this.cycle = cycle;
     }
 
@@ -58,6 +68,20 @@ public class Event {
      */
     public void setDate(String date) {
         this.date = date;
+    }
+
+    /**
+     * @return the dayOfWeek
+     */
+    public String getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    /**
+     * @param dayOfWeek the dayOfWeek to set
+     */
+    public void setDayOfWeek(String dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
     }
 
     /**
