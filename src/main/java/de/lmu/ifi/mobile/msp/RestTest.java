@@ -13,6 +13,9 @@ import com.jaunt.UserAgent;
 import com.jaunt.component.Table;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -293,13 +296,15 @@ public class RestTest {
         return links.stream().anyMatch(el -> el.getLink().equals(link.getLink()));
     }
 
-    // @RequestMapping(value = "/sendMessage", method = RequestMethod.POST, consumes
-    // = "application/json")
-    // public ResponseEntity<HttpStatus> receiveMessage(@RequestBody Message
-    // message) {
-    // MessageModel.addMessage(message);
-    // return ResponseEntity.ok(HttpStatus.OK);
-    // }
+    @RequestMapping(value = "/getBuilding", method = RequestMethod.POST/*, consumes = "application/json"*/)
+    public ResponseEntity<String> receiveMessage(@RequestBody String building) {
+        System.out.println("building: " + building);
+        List<Lecture> lectures = lectureRepository.findByNameLike("Projektmanagement");
+        Gson gson = new Gson();
+        return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
+        // return "yoyoyo";
+        // return new ResponseEntity<String>("yoyoyo", HttpStatus.OK);
+    }
 
     @RequestMapping(value = "/deleteLectureCollection", method = RequestMethod.GET)
     private void deleteLectures() {
