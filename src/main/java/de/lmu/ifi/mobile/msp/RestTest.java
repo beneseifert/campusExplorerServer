@@ -296,14 +296,21 @@ public class RestTest {
         return links.stream().anyMatch(el -> el.getLink().equals(link.getLink()));
     }
 
+    // @RequestMapping(value = "/getBuilding", method = RequestMethod.POST/*, consumes = "application/json"*/)
+    // public ResponseEntity<String> receiveMessage(@RequestBody String building) {
+    //     System.out.println("building: " + building);
+    //     List<Lecture> lectures = lectureRepository.findByNameLike("Projektmanagement");
+    //     Gson gson = new Gson();
+    //     return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
+    // }
+
     @RequestMapping(value = "/getBuilding", method = RequestMethod.POST/*, consumes = "application/json"*/)
-    public ResponseEntity<String> receiveMessage(@RequestBody String building) {
-        System.out.println("building: " + building);
-        List<Lecture> lectures = lectureRepository.findByNameLike("Projektmanagement");
+    public ResponseEntity<String> receiveMessageNew(@RequestBody String query) {
+        // get the requested building from the query
+        String building = query.substring(query.lastIndexOf("=")+1); 
+        List<Lecture> lectures = lectureRepository.findByEvents_Room(building);
         Gson gson = new Gson();
         return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
-        // return "yoyoyo";
-        // return new ResponseEntity<String>("yoyoyo", HttpStatus.OK);
     }
 
     @RequestMapping(value = "/deleteLectureCollection", method = RequestMethod.GET)
