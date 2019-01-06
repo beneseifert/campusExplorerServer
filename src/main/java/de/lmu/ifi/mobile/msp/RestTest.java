@@ -304,10 +304,12 @@ public class RestTest {
     //     return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
     // }
 
-    @RequestMapping(value = "/getBuilding", method = RequestMethod.POST/*, consumes = "application/json"*/)
+    @RequestMapping(value = "/getBuilding", method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> receiveMessageNew(@RequestBody String query) {
         // get the requested building from the query
-        String building = query.substring(query.lastIndexOf("=")+1); 
+        // System.out.println("query: " + query);
+        String building = query.replace("{\"building\":", "").replace("}", "").replaceAll("\"", ""); 
+        // System.out.println("building: " + building);
         List<Lecture> lectures = lectureRepository.findByEvents_Room(building);
         Gson gson = new Gson();
         return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
