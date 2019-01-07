@@ -235,8 +235,8 @@ public class RestTest {
     private List<MetaLink> goOverLinks(UserAgent userAgent, List<MetaLink> allOverviewWebsites) {
         List<MetaLink> allLectureLinks = new ArrayList<MetaLink>();
         // this runs until we have viewed all overview websites
-        // for (int i = 0; i < allOverviewWebsites.size(); i++) {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < allOverviewWebsites.size(); i++) {
+        // for (int i = 0; i < 100; i++) {
             MetaLink link = allOverviewWebsites.get(i);
             // check if the link was visited already
             if (!link.wasLinkVisited()) {
@@ -307,9 +307,9 @@ public class RestTest {
     @RequestMapping(value = "/getBuilding", method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> receiveMessageNew(@RequestBody String query) {
         // get the requested building from the query
-        // System.out.println("query: " + query);
-        String building = query.replace("{\"building\":", "").replace("}", "").replaceAll("\"", ""); 
-        // System.out.println("building: " + building);
+        System.out.println("query: " + query);
+        String building = query.replace("{\"building\":", "").replace("}", "").replaceAll("\"", "").replace(" ", ""); 
+        System.out.println("building: " + building);
         List<Lecture> lectures = lectureRepository.findByEvents_Room(building);
         Gson gson = new Gson();
         return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
