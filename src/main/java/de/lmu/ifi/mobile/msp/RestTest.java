@@ -53,10 +53,11 @@ public class RestTest {
             // now from here on, go to all child links and retrieve the last-level links
             List<MetaLink> lastLevelLinks = goOverLinks(userAgent, links);
             // get all the Lecture objects from their links
-            List<Lecture> lectures = getLectures(lastLevelLinks, userAgent);
+            // List<Lecture> lectures = getLectures(lastLevelLinks, userAgent);
+            getLectures(lastLevelLinks, userAgent);
             // return the lectures object as a JSON (for debugging purposes)
-            Gson gson = new Gson();
-            return gson.toJson(lectures);
+            // Gson gson = new Gson();
+            return ""; // gson.toJson(lectures);
         } catch (Exception e) {
             return e.toString();
         }
@@ -69,8 +70,8 @@ public class RestTest {
      * @param userAgent
      * @return
      */
-    private List<Lecture> getLectures(List<MetaLink> lastLevelLinks, UserAgent userAgent) {
-        List<Lecture> lectures = new ArrayList<Lecture>();
+    private void getLectures(List<MetaLink> lastLevelLinks, UserAgent userAgent) {
+        // List<Lecture> lectures = new ArrayList<Lecture>();
         for (MetaLink link : lastLevelLinks) {
             System.out
                     .println("looking at link: " + (lastLevelLinks.indexOf(link) + 1) + " of " + lastLevelLinks.size());
@@ -82,15 +83,16 @@ public class RestTest {
                     // set the link as visited so we don't visit it again
                     link.setLinkVisited();
                     // get the lecture of the given page
-                    Lecture lecture = getLectureOfPage(userAgent, link);
-                    lectures.add(lecture);
+                    // Lecture lecture = getLectureOfPage(userAgent, link);
+                    getLectureOfPage(userAgent, link);
+                    // lectures.add(lecture);
                 } catch (ResponseException e) {
                     e.printStackTrace();
                 }
             }
             // break;
         }
-        return lectures;
+        // return lectures;
     }
 
     /**
@@ -100,7 +102,7 @@ public class RestTest {
      * @param link
      * @return
      */
-    private Lecture getLectureOfPage(UserAgent userAgent, MetaLink link) {
+    private void getLectureOfPage(UserAgent userAgent, MetaLink link) {
         Lecture lecture = new Lecture();
         try {
             // get the Table for the "Grunddaten"
@@ -109,11 +111,6 @@ public class RestTest {
             String id = grundDaten.getRow("Veranstaltungsnummer").findFirst("<td>").getTextContent();
             String name = userAgent.doc.findFirst("<h1>").getTextContent().replaceAll("[\n\t]*", "")
                     .replace("- Einzelansicht", "").trim();
-            // get the department via the department element which we find through it's
-            // caption
-            Element departmentElement = userAgent.doc.findFirst("<caption>Zuordnung zu Einrichtungen").getParent();
-            String department = departmentElement.findFirst("<a class='regular'>").getTextContent()
-                    .replaceAll("[\n\t]*", "");
             // now get the event tables via one of the table headers
             List<Table> allEventTables = userAgent.doc.findEvery("<th scope='col' class='mod'>Tag").toList().stream()
                     .map(element -> {
@@ -124,11 +121,9 @@ public class RestTest {
                             return null;
                         }
                     }).collect(Collectors.toList());
-
+            ArrayList<Event> allEvents = new ArrayList<Event>();
             // check if we have any events
             if (allEventTables.size() > 0) {
-                ArrayList<Event> allEvents = new ArrayList<Event>();
-
                 // go over all group tables
                 for (Table currentEventTable : allEventTables) {
                     // check if we have any events in this group (might be empty)
@@ -146,20 +141,35 @@ public class RestTest {
                         }
                     }
                 }
-                // add the information as an object
-                lecture = new Lecture(id, name, allEvents, department, type, link.getLink());
-            } else {
-                // if we don't have any event data, just put in an empty list of Events
-                lecture = new Lecture(id, name, new ArrayList<Event>(), department, type, link.getLink());
-            }
 
-            // für dich bene zum löschen gibts auch ne REST resource
-            lectureRepository.save(lecture);
+            }
+            // get the department via the department element which we find through it's
+            // caption
+            Element departmentElement = userAgent.doc.findFirst("<caption>Zuordnung zu Einrichtungen").getParent();
+            String department = departmentElement.findFirst("<a class='regular'>").getTextContent()
+                    .replaceAll("[\n\t]*", "");
+                    String departmentlink = departmentElement.findFirst("<a class='regular'>").getAt("href").replace("&amp;",
+                    "&");
+                    userAgent.visit(departmentlink);
+                    System.out.println("departmentlink: " + departmentlink);
+                    
+                    if (userAgent.doc.findEvery("<a>Fakult").toList().size() > 0){
+                        String faculty = userAgent.doc.findFirst("<a>Fakult").getTextContent().replaceAll("[\n\t]*", "");
+                        System.out.println("faculty: " + faculty);
+            
+                        // add the information as an object
+                        lecture = new Lecture(id, name, allEvents, department, type, faculty, link.getLink());
+                        // für dich bene zum löschen gibts auch ne REST resource
+                        lectureRepository.save(lecture);
+                    }
 
         } catch (NotFound e) {
             e.printStackTrace();
         }
-        return lecture;
+        // return lecture;
+        catch (ResponseException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -235,8 +245,8 @@ public class RestTest {
     private List<MetaLink> goOverLinks(UserAgent userAgent, List<MetaLink> allOverviewWebsites) {
         List<MetaLink> allLectureLinks = new ArrayList<MetaLink>();
         // this runs until we have viewed all overview websites
-        for (int i = 0; i < allOverviewWebsites.size(); i++) {
-        // for (int i = 0; i < 100; i++) {
+        // for (int i = 0; i < allOverviewWebsites.size(); i++) {
+        for (int i = 0; i < 100; i++) {
             MetaLink link = allOverviewWebsites.get(i);
             // check if the link was visited already
             if (!link.wasLinkVisited()) {
@@ -296,19 +306,21 @@ public class RestTest {
         return links.stream().anyMatch(el -> el.getLink().equals(link.getLink()));
     }
 
-    // @RequestMapping(value = "/getBuilding", method = RequestMethod.POST/*, consumes = "application/json"*/)
+    // @RequestMapping(value = "/getBuilding", method = RequestMethod.POST/*,
+    // consumes = "application/json"*/)
     // public ResponseEntity<String> receiveMessage(@RequestBody String building) {
-    //     System.out.println("building: " + building);
-    //     List<Lecture> lectures = lectureRepository.findByNameLike("Projektmanagement");
-    //     Gson gson = new Gson();
-    //     return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
+    // System.out.println("building: " + building);
+    // List<Lecture> lectures =
+    // lectureRepository.findByNameLike("Projektmanagement");
+    // Gson gson = new Gson();
+    // return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
     // }
 
     @RequestMapping(value = "/getBuilding", method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> receiveMessageNew(@RequestBody String query) {
         // get the requested building from the query
         System.out.println("query: " + query);
-        String building = query.replace("{\"building\":", "").replace("}", "").replaceAll("\"", "").replace(" ", ""); 
+        String building = query.replace("{\"building\":", "").replace("}", "").replaceAll("\"", "").replace(" ", "");
         System.out.println("building: " + building);
         List<Lecture> lectures = lectureRepository.findByEvents_Room(building);
         Gson gson = new Gson();

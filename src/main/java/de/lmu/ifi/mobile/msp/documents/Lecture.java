@@ -14,17 +14,20 @@ public class Lecture {
     private List<Event> events;
     private String department;
     private String type;
+    private String faculty;
     private String link;
 
     public Lecture() {
     }
 
-    public Lecture(String id, String name, List<Event> events, String department, String type, String link) {
+    public Lecture(String id, String name, List<Event> events, String department, String type, String faculty,
+            String link) {
         this.id = id;
         this.name = name;
         this.events = events;
         this.department = department;
         this.type = type;
+        this.faculty = faculty;
         this.link = link;
     }
 
@@ -84,6 +87,20 @@ public class Lecture {
      */
     public void setType(String type) {
         this.type = type;
+    }
+
+    /**
+     * @return the faculty
+     */
+    public String getFaculty() {
+        return faculty;
+    }
+
+    /**
+     * @param faculty the faculty to set
+     */
+    public void setFaculty(String faculty) {
+        this.faculty = faculty;
     }
 
     /**
