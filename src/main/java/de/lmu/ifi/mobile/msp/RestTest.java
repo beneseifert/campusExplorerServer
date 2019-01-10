@@ -42,6 +42,7 @@ public class RestTest {
             UserAgent userAgent = new UserAgent();
             // enable cache so we don't have to visit the same 11575 websites again
             userAgent.setCacheEnabled(true);
+            userAgent.settings.responseTimeout = 80000;
             // now start with the overview
             userAgent.visit(
                     "https://lsf.verwaltung.uni-muenchen.de/qisserver/rds?state=wtree&search=1&category=veranstaltung.browse&navigationPosition=functions%2Clectureindex&breadcrumb=lectureindex&topitem=locallinks&subitem=lectureindex");
@@ -135,8 +136,8 @@ public class RestTest {
                                     .add(new Event(getFormattedPropertyOfTable(currentEventTable, "Raum", currentIndex),
                                             getFormattedPropertyOfTable(currentEventTable, "Zeit", currentIndex),
                                             getFormattedPropertyOfTable(currentEventTable, "Dauer", currentIndex),
-                                            getFormattedPropertyOfTable(currentEventTable, "Tag", currentIndex),
-                                            getFormattedPropertyOfTable(currentEventTable, "Rhythmus", currentIndex)));
+                                            getFormattedPropertyOfTable(currentEventTable, "Rhythmus", currentIndex),
+                                            getFormattedPropertyOfTable(currentEventTable, "Tag", currentIndex)));
 
                         }
                     }
@@ -148,20 +149,20 @@ public class RestTest {
             Element departmentElement = userAgent.doc.findFirst("<caption>Zuordnung zu Einrichtungen").getParent();
             String department = departmentElement.findFirst("<a class='regular'>").getTextContent()
                     .replaceAll("[\n\t]*", "");
-                    String departmentlink = departmentElement.findFirst("<a class='regular'>").getAt("href").replace("&amp;",
+            String departmentlink = departmentElement.findFirst("<a class='regular'>").getAt("href").replace("&amp;",
                     "&");
-                    userAgent.visit(departmentlink);
-                    System.out.println("departmentlink: " + departmentlink);
-                    
-                    if (userAgent.doc.findEvery("<a>Fakult").toList().size() > 0){
-                        String faculty = userAgent.doc.findFirst("<a>Fakult").getTextContent().replaceAll("[\n\t]*", "");
-                        System.out.println("faculty: " + faculty);
-            
-                        // add the information as an object
-                        lecture = new Lecture(id, name, allEvents, department, type, faculty, link.getLink());
-                        // für dich bene zum löschen gibts auch ne REST resource
-                        lectureRepository.save(lecture);
-                    }
+            userAgent.visit(departmentlink);
+            System.out.println("departmentlink: " + departmentlink);
+
+            if (userAgent.doc.findEvery("<a>Fakult").toList().size() > 0) {
+                String faculty = userAgent.doc.findFirst("<a>Fakult").getTextContent().replaceAll("[\n\t]*", "");
+                System.out.println("faculty: " + faculty);
+
+                // add the information as an object
+                lecture = new Lecture(id, name, allEvents, department, type, faculty, link.getLink());
+                // für dich bene zum löschen gibts auch ne REST resource
+                lectureRepository.save(lecture);
+            }
 
         } catch (NotFound e) {
             e.printStackTrace();
@@ -184,7 +185,7 @@ public class RestTest {
     private String getFormattedPropertyOfTable(Table currentEventTable, String propertyName, int currentIndex) {
         try {
             return currentEventTable.getColBelow(propertyName).toList().get(currentIndex).getTextContent()
-                    .replaceAll("[\n\t]*", "").replaceAll("&nbsp;", " ").trim();
+                    .replaceAll("Geschossplan", "").replaceAll("-\\.", "").replaceAll("[\n\t]*", "").replaceAll("&nbsp;", " ").trim();
         } catch (NotFound e) {
             e.printStackTrace();
             return null;
@@ -245,8 +246,8 @@ public class RestTest {
     private List<MetaLink> goOverLinks(UserAgent userAgent, List<MetaLink> allOverviewWebsites) {
         List<MetaLink> allLectureLinks = new ArrayList<MetaLink>();
         // this runs until we have viewed all overview websites
-        // for (int i = 0; i < allOverviewWebsites.size(); i++) {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < allOverviewWebsites.size(); i++) {
+            // for (int i = 0; i < 100; i++) {
             MetaLink link = allOverviewWebsites.get(i);
             // check if the link was visited already
             if (!link.wasLinkVisited()) {
