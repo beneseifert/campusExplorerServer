@@ -25,7 +25,7 @@ import de.lmu.ifi.mobile.msp.documents.Lecture;
 import de.lmu.ifi.mobile.msp.repositories.LectureRepository;
 
 @RestController
-public class RestTest {
+public class LsfApi {
 
     @Autowired
     LectureRepository lectureRepository;
@@ -35,7 +35,7 @@ public class RestTest {
      * 
      * @return
      */
-    @RequestMapping(value = "/", method = RequestMethod.GET)
+    @RequestMapping(value = "/startCrawler", method = RequestMethod.GET)
     public String getAllLectures() {
         try {
             // get a userAgent to play browser
@@ -185,7 +185,8 @@ public class RestTest {
     private String getFormattedPropertyOfTable(Table currentEventTable, String propertyName, int currentIndex) {
         try {
             return currentEventTable.getColBelow(propertyName).toList().get(currentIndex).getTextContent()
-                    .replaceAll("Geschossplan", "").replaceAll("-\\.", "").replaceAll("[\n\t]*", "").replaceAll("&nbsp;", " ").trim();
+                    .replaceAll("Geschossplan", "").replaceAll("-\\.", "").replaceAll("[\n\t]*", "")
+                    .replaceAll("&nbsp;", " ").trim();
         } catch (NotFound e) {
             e.printStackTrace();
             return null;
@@ -307,17 +308,16 @@ public class RestTest {
         return links.stream().anyMatch(el -> el.getLink().equals(link.getLink()));
     }
 
-    // @RequestMapping(value = "/getBuilding", method = RequestMethod.POST/*,
-    // consumes = "application/json"*/)
-    // public ResponseEntity<String> receiveMessage(@RequestBody String building) {
-    // System.out.println("building: " + building);
-    // List<Lecture> lectures =
-    // lectureRepository.findByNameLike("Projektmanagement");
-    // Gson gson = new Gson();
-    // return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
-    // }
-
-    @RequestMapping(value = "/getBuilding", method = RequestMethod.POST, consumes = "application/json")
+    /**
+     * Returns a list of {@link Lecture} objects given the query call this with
+     * 
+     * curl -d '{"building": "Geschw"}' -X POST -H "Content-Type: application/json"
+     * 127.0.0.1:8080/postBuilding to debug
+     * 
+     * @param query
+     * @return
+     */
+    @RequestMapping(value = "/postBuilding", method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> receiveMessageNew(@RequestBody String query) {
         // get the requested building from the query
         System.out.println("query: " + query);
@@ -328,6 +328,9 @@ public class RestTest {
         return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
     }
 
+    /**
+     * Deletes the lecture collection
+     */
     @RequestMapping(value = "/deleteLectureCollection", method = RequestMethod.GET)
     private void deleteLectures() {
         lectureRepository.deleteAll();
