@@ -1,5 +1,7 @@
 package de.lmu.ifi.mobile.msp;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -320,10 +322,17 @@ public class LsfApi {
     @RequestMapping(value = "/postBuilding", method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> receiveMessageNew(@RequestBody String query) {
         // get the requested building from the query
-        System.out.println("query: " + query);
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        System.out.println(timestamp + " query: " + query);
         String building = query.replace("{\"building\":", "").replace("}", "").replaceAll("\"", "").replace(" ", "");
-        System.out.println("building: " + building);
+        System.out.println(timestamp + " building: " + building);
         List<Lecture> lectures = lectureRepository.findByEvents_Room(building);
+        lectures = lectures.stream().map(lecture -> new Lecture(lecture.getId(), lecture.getName(),
+                // remove the elements which are not in the specified building
+                lecture.getEvents().stream().filter(event -> event.getRoom().contains(building))
+                        .collect(Collectors.toList()),
+                lecture.getDepartment(), lecture.getType(), lecture.getFaculty(), lecture.getLink()))
+                .filter(lecture -> lecture.getEvents().size() > 0).collect(Collectors.toList());
         Gson gson = new Gson();
         return new ResponseEntity<String>(gson.toJson(lectures), HttpStatus.OK);
     }
