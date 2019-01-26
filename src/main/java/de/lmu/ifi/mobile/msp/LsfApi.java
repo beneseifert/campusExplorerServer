@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import com.google.gson.Gson;
 import com.jaunt.Element;
 import com.jaunt.Elements;
@@ -25,12 +27,21 @@ import org.springframework.web.bind.annotation.RestController;
 import de.lmu.ifi.mobile.msp.documents.Event;
 import de.lmu.ifi.mobile.msp.documents.Lecture;
 import de.lmu.ifi.mobile.msp.repositories.LectureRepository;
+import de.lmu.ifi.mobile.msp.services.LectureService;
 
 @RestController
 public class LsfApi {
 
     @Autowired
     LectureRepository lectureRepository;
+
+    @Autowired
+    private LectureService lsfService;
+
+    @PostConstruct
+    public void importLSFData() {
+        lsfService.importLSFData();
+    }
 
     /**
      * Returns all the lectures as a json string

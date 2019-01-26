@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Lecture {
 
     @Id
-    private String id;
+    private String _id;
     private String name;
     private List<Event> events;
     private String department;
@@ -22,7 +22,7 @@ public class Lecture {
 
     public Lecture(String id, String name, List<Event> events, String department, String type, String faculty,
             String link) {
-        this.id = id;
+        this._id = id;
         this.name = name;
         this.events = events;
         this.department = department;
@@ -32,11 +32,11 @@ public class Lecture {
     }
 
     public String getId() {
-        return id;
+        return _id;
     }
 
     public void setId(String id) {
-        this.id = id;
+        this._id = id;
     }
 
     public String getName() {
