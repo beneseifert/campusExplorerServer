@@ -335,7 +335,7 @@ public class LsfApi {
         // get the requested building from the query
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
         System.out.println(timestamp + " query: " + query);
-        String building = query.replace("{\"building\":", "").replace("}", "").replaceAll("\"", "").replace(" ", "");
+        String building = query.replace("{\"building\":", "").replace("}", "").replaceAll("\"", "");//.replace(" ", "");
         System.out.println(timestamp + " building: " + building);
         List<Lecture> lectures = lectureRepository.findByEvents_Room(building);
         lectures = lectures.stream().map(lecture -> new Lecture(lecture.getId(), lecture.getName(),
